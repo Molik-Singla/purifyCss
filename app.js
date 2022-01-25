@@ -4,22 +4,25 @@ const submitButton = document.querySelector(".submit-btn");
 
 let html;
 let css;
-let ids = [];
-let classes = [];
+let allCssIds = [];
+let allCssClasses = [];
 
-let unUsedIds = [];
-let unUsedClasses = [];
+let unUsedCssIds = [];
+let unUsedCssClasses = [];
 
-let allHtmlClassesString = [];
+let allHtmlClasses = [];
 
-let lines = 0;
-let obj = {};
+let cssLinesCount = 0;
 
-//  get all ids
-function getIds(i) {
-    let start = i;
+let collectedUnusedCss = {};
+let countForCollectedUnusedCss = 0;
+
+let cssLineByLineObject = {};
+
+function getIds(characterIndex) {
+    let start = characterIndex;
     let end;
-    for (end = i; css[end] != "\n"; ) {
+    for (end = characterIndex; css[end] != "\n"; ) {
         end++;
     }
     let str = css.substring(start, end).trim();
@@ -28,15 +31,15 @@ function getIds(i) {
     if (!str.includes(";")) {
         if (str[str.length - 1] === "{") str = str.substring(0, str.length - 1);
         if (str.includes(":")) str = str.split(":")[0];
-        ids.push(str);
+        allCssIds.push(str);
     }
 }
 
-// get all classes
-function getClasses(i) {
-    let start = i;
+// get all allCssClasses
+function getClasses(characterIndex) {
+    let start = characterIndex;
     let end;
-    for (end = i; css[end] != "{"; ) {
+    for (end = characterIndex; css[end] != "{"; ) {
         end++;
     }
 
@@ -44,13 +47,16 @@ function getClasses(i) {
     if (!str.includes("\n")) {
         str = str.split(" ")[0];
         if (str.includes(":")) str = str.split(":")[0];
-        classes.push(str);
+        str = str.split(",");
+        allCssClasses.push(...str);
     }
 }
 
 submitButton.addEventListener("click", () => {
     html = htmlTestArea.value;
     css = cssTestArea.value;
+
+    // Calling getIds and getClasses function
     for (let i = 0; i < css.length; i++) {
         if (css[i] === "#") {
             if (css.indexOf("{", i + 1) === -1) {
@@ -65,30 +71,31 @@ submitButton.addEventListener("click", () => {
         }
     }
 
-    ids = [...new Set(ids)];
-    classes = [...new Set(classes)];
+    allCssIds = [...new Set(allCssIds)];
+    allCssClasses = [...new Set(allCssClasses)];
 
-    // for unused ids
-    let idsCopy = [];
-    ids.forEach(item => {
-        idsCopy.push(item.slice(1));
+    // for unused allCssIds
+    let allCssIdsCopy = [];
+    allCssIds.forEach(singleId => {
+        allCssIdsCopy.push(singleId.slice(1));
     });
-    for (let i = 0; i < idsCopy.length; i++) {
+
+    for (let i = 0; i < allCssIdsCopy.length; i++) {
         if (
-            html.includes(`id="${idsCopy[i]}"`) ||
-            html.includes(`id ="${idsCopy[i]}"`) ||
-            html.includes(`id= "${idsCopy[i]}"`) ||
-            html.includes(`id = "${idsCopy[i]}"`) ||
-            html.includes(`id='${idsCopy[i]}'`) ||
-            html.includes(`id ='${idsCopy[i]}'`) ||
-            html.includes(`id= '${idsCopy[i]}'`) ||
-            html.includes(`id = '${idsCopy[i]}'`)
+            html.includes(`id="${allCssIdsCopy[i]}"`) ||
+            html.includes(`id ="${allCssIdsCopy[i]}"`) ||
+            html.includes(`id= "${allCssIdsCopy[i]}"`) ||
+            html.includes(`id = "${allCssIdsCopy[i]}"`) ||
+            html.includes(`id='${allCssIdsCopy[i]}'`) ||
+            html.includes(`id ='${allCssIdsCopy[i]}'`) ||
+            html.includes(`id= '${allCssIdsCopy[i]}'`) ||
+            html.includes(`id = '${allCssIdsCopy[i]}'`)
         )
             continue;
-        else unUsedIds.push(ids[i]);
+        else unUsedCssIds.push(allCssIds[i]);
     }
 
-    // for all unused classes
+    // for all unused allCssClasses
     const regex = /(?:class|className)=(?:["']\W+\s*(?:\w+)\()?["']([^'"]+)['"]/gim;
     let m;
 
@@ -98,60 +105,60 @@ submitButton.addEventListener("click", () => {
         }
         m.forEach(match => {
             if (!match.includes("class=")) {
-                allHtmlClassesString.push(match);
+                allHtmlClasses.push(match);
             }
         });
     }
 
-    let classesCopy = [];
-    classes.forEach(item => {
-        classesCopy.push(item.slice(1));
+    let allCssClassesCopy = [];
+    allCssClasses.forEach(singleClass => {
+        allCssClassesCopy.push(singleClass.slice(1));
     });
-    for (let i = 0; i < classesCopy.length; i++) {
+
+    for (let i = 0; i < allCssClassesCopy.length; i++) {
         let flag = 1;
-        for (let oneCls of allHtmlClassesString) {
-            if (oneCls.includes(classesCopy[i])) {
+        for (let singleClass of allHtmlClasses) {
+            if (singleClass.includes(allCssClassesCopy[i])) {
                 flag = 0;
                 break;
             }
         }
         if (flag) {
-            unUsedClasses.push(classes[i]);
+            unUsedCssClasses.push(allCssClasses[i]);
         }
     }
 
-    // count lines in css file
+    // count cssLinesCount in css file
     let start = 0;
     for (let i = 0; i < css.length; i++) {
         if (css[i] === "\n") {
-            let str = css.substring(start, i);
-            start = i;
-            obj[++lines] = str;
+            ++cssLinesCount;
         }
     }
 
-    let prop = 0;
-    let cssObject = {};
+    let starting = 0;
+    cssLineByLineObject = {};
     let previous = 0;
     let purifiedCss = "";
 
-    let combinesUnless = [...unUsedClasses, ...unUsedIds];
+    let combinesUnless = [...unUsedCssClasses, ...unUsedCssIds];
 
     for (let i = 0; i < css.length; i++) {
         if (css[i] === "}") {
-            prop++;
-            cssObject[prop] = css.slice(previous, i + 1);
+            starting++;
+            let forCorrectionMedia = css.slice(previous, i + 1);
+            cssLineByLineObject[starting] = forCorrectionMedia;
             previous = i + 1;
         }
     }
 
-    for (let i in cssObject) {
-        purifiedCss += cssObject[i];
+    for (let i in cssLineByLineObject) {
+        purifiedCss += cssLineByLineObject[i];
     }
     for (let useLessStuff of combinesUnless) {
-        for (let i in cssObject) {
-            if (cssObject[i].includes(useLessStuff)) {
-                let splitter = cssObject[i].split(",");
+        for (let i in cssLineByLineObject) {
+            if (cssLineByLineObject[i].includes(useLessStuff)) {
+                let splitter = cssLineByLineObject[i].split(",");
                 if (splitter.length > 1) {
                     let answer = "";
 
@@ -162,194 +169,40 @@ submitButton.addEventListener("click", () => {
                     }
                     if (answer.length > 0) {
                         if (answer.includes("{") && answer.includes) {
-                            purifiedCss = purifiedCss.replace(cssObject[i], answer);
-                            console.log(cssObject[i]);
+                            purifiedCss = purifiedCss.replace(cssLineByLineObject[i], answer);
+                            // console.log(cssLineByLineObject[i]);
+                            collectedUnusedCss[++countForCollectedUnusedCss] = cssLineByLineObject[i];
                         } else {
-                            // console.log(answer);
-                            answer =
-                                answer + cssObject[i].slice(cssObject[i].indexOf("{"), cssObject[i].indexOf("}") + 1);
-                            purifiedCss = purifiedCss.replace(cssObject[i], answer);
-                            console.log(cssObject[i]);
+                            answer = answer + cssLineByLineObject[i].slice(cssLineByLineObject[i].indexOf("{"), cssLineByLineObject[i].indexOf("}") + 1);
+                            purifiedCss = purifiedCss.replace(cssLineByLineObject[i], answer);
+                            // console.log(cssLineByLineObject[i]);
+                            collectedUnusedCss[++countForCollectedUnusedCss] = cssLineByLineObject[i];
                         }
                     } else {
-                        purifiedCss = purifiedCss.replace(cssObject[i], answer);
-                        console.log(cssObject[i]);
+                        purifiedCss = purifiedCss.replace(cssLineByLineObject[i], answer);
+                        // console.log(cssLineByLineObject[i]);
+                        collectedUnusedCss[++countForCollectedUnusedCss] = cssLineByLineObject[i];
                     }
                 } else {
-                    purifiedCss = purifiedCss.replace(cssObject[i], "");
-                    console.log(cssObject[i]);
+                    if (cssLineByLineObject[i].includes("@media")) {
+                        let fakeVar = cssLineByLineObject[i].slice(cssLineByLineObject[i].indexOf("{") + 1);
+                        purifiedCss = purifiedCss.replace(fakeVar, "");
+                        collectedUnusedCss[++countForCollectedUnusedCss] = fakeVar;
+                    } else {
+                        purifiedCss = purifiedCss.replace(cssLineByLineObject[i], "");
+                        // console.log(cssLineByLineObject[i]);
+                        collectedUnusedCss[++countForCollectedUnusedCss] = cssLineByLineObject[i];
+                    }
                 }
             }
         }
     }
+
     // returned this purifies css
+    console.log("---------------  Purified Css  -----------------");
     console.log(purifiedCss);
+    console.log("---------------  Unused Css  -----------------");
+    for (let singleUnused in collectedUnusedCss) {
+        console.log(collectedUnusedCss[singleUnused].trim());
+    }
 });
-
-// //  get all ids
-// function getIds(i) {
-//     let start = i;
-//     let end;
-//     for (end = i; css[end] != "\n"; ) {
-//         end++;
-//     }
-//     let str = css.substring(start, end).trim();
-//     str = str.split(",")[0].split(" ")[0];
-
-//     if (!str.includes(";")) {
-//         if (str[str.length - 1] === "{") str = str.substring(0, str.length - 1);
-//         if (str.includes(":")) str = str.split(":")[0];
-//         ids.push(str);
-//     }
-// }
-
-// // get all classes
-// function getClasses(i) {
-//     let start = i;
-//     let end;
-//     for (end = i; css[end] != "{"; ) {
-//         end++;
-//     }
-
-//     let str = css.substring(start, end).trim();
-//     if (!str.includes("\n")) {
-//         str = str.split(" ")[0];
-//         if (str.includes(":")) str = str.split(":")[0];
-//         classes.push(str);
-//     }
-// }
-
-// for (let i = 0; i < css.length; i++) {
-//     if (css[i] === "#") {
-//         if (css.indexOf("{", i + 1) === -1) {
-//             continue;
-//         } else if (css.indexOf("{", i + 1) > css.indexOf("}", i + 1)) {
-//             continue;
-//         }
-//         getIds(i);
-//     }
-//     if (css[i] === ".") {
-//         getClasses(i);
-//     }
-// }
-
-// ids = [...new Set(ids)];
-// classes = [...new Set(classes)];
-
-// // for unused ids
-// let idsCopy = [];
-// ids.forEach(item => {
-//     idsCopy.push(item.slice(1));
-// });
-// for (let i = 0; i < idsCopy.length; i++) {
-//     if (
-//         html.includes(`id="${idsCopy[i]}"`) ||
-//         html.includes(`id ="${idsCopy[i]}"`) ||
-//         html.includes(`id= "${idsCopy[i]}"`) ||
-//         html.includes(`id = "${idsCopy[i]}"`) ||
-//         html.includes(`id='${idsCopy[i]}'`) ||
-//         html.includes(`id ='${idsCopy[i]}'`) ||
-//         html.includes(`id= '${idsCopy[i]}'`) ||
-//         html.includes(`id = '${idsCopy[i]}'`)
-//     )
-//         continue;
-//     else unUsedIds.push(ids[i]);
-// }
-
-// // for all unused classes
-// const regex = /(?:class|className)=(?:["']\W+\s*(?:\w+)\()?["']([^'"]+)['"]/gim;
-// let m;
-
-// while ((m = regex.exec(html)) !== null) {
-//     if (m.index === regex.lastIndex) {
-//         regex.lastIndex++;
-//     }
-//     m.forEach(match => {
-//         if (!match.includes("class=")) {
-//             allHtmlClassesString.push(match);
-//         }
-//     });
-// }
-
-// let classesCopy = [];
-// classes.forEach(item => {
-//     classesCopy.push(item.slice(1));
-// });
-// for (let i = 0; i < classesCopy.length; i++) {
-//     let flag = 1;
-//     for (let oneCls of allHtmlClassesString) {
-//         if (oneCls.includes(classesCopy[i])) {
-//             flag = 0;
-//             break;
-//         }
-//     }
-//     if (flag) {
-//         unUsedClasses.push(classes[i]);
-//     }
-// }
-
-// // count lines in css file
-// let start = 0;
-// for (let i = 0; i < css.length; i++) {
-//     if (css[i] === "\n") {
-//         let str = css.substring(start, i);
-//         start = i;
-//         obj[++lines] = str;
-//     }
-// }
-
-// let prop = 0;
-// let cssObject = {};
-// let previous = 0;
-// let purifiedCss = "";
-
-// let combinesUnless = [...unUsedClasses, ...unUsedIds];
-
-// for (let i = 0; i < css.length; i++) {
-//     if (css[i] === "}") {
-//         prop++;
-//         cssObject[prop] = css.slice(previous, i + 1);
-//         previous = i + 1;
-//     }
-// }
-
-// for (let i in cssObject) {
-//     purifiedCss += cssObject[i];
-// }
-// for (let useLessStuff of combinesUnless) {
-//     for (let i in cssObject) {
-//         if (cssObject[i].includes(useLessStuff)) {
-//             let splitter = cssObject[i].split(",");
-//             if (splitter.length > 1) {
-//                 let answer = "";
-
-//                 for (let inside = 0; inside < splitter.length; inside++) {
-//                     if (!splitter[inside].includes(useLessStuff) && splitter[inside].indexOf("{") >= 0) {
-//                         answer += splitter[inside];
-//                     }
-//                 }
-//                 if (answer.length > 0) {
-//                     if (answer.includes("{") && answer.includes) {
-//                         purifiedCss = purifiedCss.replace(cssObject[i], answer);
-//                         console.log(cssObject[i]);
-//                     } else {
-//                         // console.log(answer);
-//                         answer = answer + cssObject[i].slice(cssObject[i].indexOf("{"), cssObject[i].indexOf("}") + 1);
-//                         purifiedCss = purifiedCss.replace(cssObject[i], answer);
-//                         console.log(cssObject[i]);
-//                     }
-//                 } else {
-//                     purifiedCss = purifiedCss.replace(cssObject[i], answer);
-//                     console.log(cssObject[i]);
-//                 }
-//             } else {
-//                 purifiedCss = purifiedCss.replace(cssObject[i], "");
-//                 console.log(cssObject[i]);
-//             }
-//         }
-//     }
-// }
-// console.log("------------------------------------/");
-// // returned this purifies css
-// console.log(purifiedCss);
-// purifiedCss += " \n";
