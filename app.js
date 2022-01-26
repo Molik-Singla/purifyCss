@@ -1,9 +1,12 @@
 const htmlTestArea = document.querySelector("#html-text");
 const cssTestArea = document.querySelector("#css-text");
+const jsTestArea = document.querySelector("#js-text");
 const submitButton = document.querySelector(".submit-btn");
 
 let html;
 let css;
+let js;
+
 let allCssIds = [];
 let allCssClasses = [];
 
@@ -53,8 +56,24 @@ function getClasses(characterIndex) {
 }
 
 submitButton.addEventListener("click", () => {
+    // initialize all variables to default or empty value to use it again and again
     html = htmlTestArea.value;
     css = cssTestArea.value;
+    js = jsTestArea.value;
+    allCssIds = [];
+    allCssClasses = [];
+
+    unUsedCssIds = [];
+    unUsedCssClasses = [];
+
+    allHtmlClasses = [];
+
+    cssLinesCount = 0;
+
+    collectedUnusedCss = {};
+    countForCollectedUnusedCss = 0;
+
+    cssLineByLineObject = {};
 
     // Calling getIds and getClasses function
     for (let i = 0; i < css.length; i++) {
@@ -127,6 +146,7 @@ submitButton.addEventListener("click", () => {
             unUsedCssClasses.push(allCssClasses[i]);
         }
     }
+    allCssClasses = allCssClassesCopy;
 
     // count cssLinesCount in css file
     let start = 0;
@@ -141,7 +161,24 @@ submitButton.addEventListener("click", () => {
     let previous = 0;
     let purifiedCss = "";
 
-    let combinesUnless = [...unUsedCssClasses, ...unUsedCssIds];
+    let combinesUseless = [...unUsedCssClasses, ...unUsedCssIds];
+
+    // after having unused properties from html we test them if they are in javascript ( else totally unused , delete them , if in js then delete it from unused array)
+    for (let singleUnused of combinesUseless) {
+        if (js.includes(`"${singleUnused}"`)) {
+            let index = combinesUseless.indexOf(`${singleUnused}`);
+            if (index >= 0) combinesUseless.splice(index, 1);
+        } else if (js.includes(`"${singleUnused.substring(1)}"`)) {
+            let index = combinesUseless.indexOf(`${singleUnused}`);
+            if (index !== -1) combinesUseless.splice(index, 1);
+        } else if (js.includes(`'${singleUnused}'`)) {
+            let index = combinesUseless.indexOf(`${singleUnused}`);
+            if (index >= 0) combinesUseless.splice(index, 1);
+        } else if (js.includes(`'${singleUnused.substring(1)}'`)) {
+            let index = combinesUseless.indexOf(`${singleUnused}`);
+            if (index >= 0) combinesUseless.splice(index, 1);
+        }
+    }
 
     for (let i = 0; i < css.length; i++) {
         if (css[i] === "}") {
@@ -155,7 +192,7 @@ submitButton.addEventListener("click", () => {
     for (let i in cssLineByLineObject) {
         purifiedCss += cssLineByLineObject[i];
     }
-    for (let useLessStuff of combinesUnless) {
+    for (let useLessStuff of combinesUseless) {
         for (let i in cssLineByLineObject) {
             if (cssLineByLineObject[i].includes(useLessStuff)) {
                 let splitter = cssLineByLineObject[i].split(",");
@@ -205,4 +242,6 @@ submitButton.addEventListener("click", () => {
     for (let singleUnused in collectedUnusedCss) {
         console.log(collectedUnusedCss[singleUnused].trim());
     }
+    // console.log(unUsedCssClasses);
+    // console.log(unUsedCssIds);
 });
