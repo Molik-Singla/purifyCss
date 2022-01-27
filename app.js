@@ -1,8 +1,19 @@
 const htmlTestArea = document.querySelector("#html-text");
 const cssTestArea = document.querySelector("#css-text");
 const jsTestArea = document.querySelector("#js-text");
-const submitButton = document.querySelector(".submit-btn");
+const cssPurifiedTextArea = document.querySelector("#html-purifiedText");
+const cssUnusedTextArea = document.querySelector("#html-unusedText");
 
+const submitButton = document.querySelector(".submit-btn");
+const clearAllButton = document.querySelector(".clearAll-btn");
+
+clearAllButton.addEventListener("click", () => {
+    htmlTestArea.value = "";
+    cssTestArea.value = "";
+    jsTestArea.value = "";
+    cssPurifiedTextArea.value = "";
+    cssUnusedTextArea.value = "";
+});
 let html;
 let css;
 let js;
@@ -129,6 +140,7 @@ submitButton.addEventListener("click", () => {
         });
     }
 
+    // fetched unused classes by matching html and css classes and saved classes which is not used in html but exist in css
     let allCssClassesCopy = [];
     allCssClasses.forEach(singleClass => {
         allCssClassesCopy.push(singleClass.slice(1));
@@ -146,18 +158,16 @@ submitButton.addEventListener("click", () => {
             unUsedCssClasses.push(allCssClasses[i]);
         }
     }
-    allCssClasses = allCssClassesCopy;
 
     // count cssLinesCount in css file
-    let start = 0;
     for (let i = 0; i < css.length; i++) {
         if (css[i] === "\n") {
             ++cssLinesCount;
         }
     }
 
-    let starting = 0;
     cssLineByLineObject = {};
+    let starting = 0;
     let previous = 0;
     let purifiedCss = "";
 
@@ -205,19 +215,20 @@ submitButton.addEventListener("click", () => {
                         }
                     }
                     if (answer.length > 0) {
-                        if (answer.includes("{") && answer.includes) {
+                        if (answer.includes("{") && answer.includes(useLessStuff)) {
                             purifiedCss = purifiedCss.replace(cssLineByLineObject[i], answer);
-                            // console.log(cssLineByLineObject[i]);
+                            console.log(answer);
+                            console.log(cssLineByLineObject[i]);
                             collectedUnusedCss[++countForCollectedUnusedCss] = cssLineByLineObject[i];
                         } else {
                             answer = answer + cssLineByLineObject[i].slice(cssLineByLineObject[i].indexOf("{"), cssLineByLineObject[i].indexOf("}") + 1);
                             purifiedCss = purifiedCss.replace(cssLineByLineObject[i], answer);
-                            // console.log(cssLineByLineObject[i]);
+                            console.log(cssLineByLineObject[i]);
                             collectedUnusedCss[++countForCollectedUnusedCss] = cssLineByLineObject[i];
                         }
                     } else {
                         purifiedCss = purifiedCss.replace(cssLineByLineObject[i], answer);
-                        // console.log(cssLineByLineObject[i]);
+                        console.log(cssLineByLineObject[i]);
                         collectedUnusedCss[++countForCollectedUnusedCss] = cssLineByLineObject[i];
                     }
                 } else {
@@ -227,7 +238,6 @@ submitButton.addEventListener("click", () => {
                         collectedUnusedCss[++countForCollectedUnusedCss] = fakeVar;
                     } else {
                         purifiedCss = purifiedCss.replace(cssLineByLineObject[i], "");
-                        // console.log(cssLineByLineObject[i]);
                         collectedUnusedCss[++countForCollectedUnusedCss] = cssLineByLineObject[i];
                     }
                 }
@@ -235,13 +245,15 @@ submitButton.addEventListener("click", () => {
         }
     }
 
-    // returned this purifies css
-    console.log("---------------  Purified Css  -----------------");
-    console.log(purifiedCss);
-    console.log("---------------  Unused Css  -----------------");
+    // returned this purifies css , unused css
+    // console.log("---------------  Purified Css  -----------------");
+    // console.log(purifiedCss);
+    // console.log("---------------  Unused Css  -----------------");
+    let cssWhichWasUnused = "";
     for (let singleUnused in collectedUnusedCss) {
-        console.log(collectedUnusedCss[singleUnused].trim());
+        // console.log(collectedUnusedCss[singleUnused].trim());
+        cssWhichWasUnused += collectedUnusedCss[singleUnused].trim() + "\n";
     }
-    // console.log(unUsedCssClasses);
-    // console.log(unUsedCssIds);
+    cssPurifiedTextArea.value = purifiedCss;
+    cssUnusedTextArea.value = cssWhichWasUnused;
 });
