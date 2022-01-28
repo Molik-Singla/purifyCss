@@ -14,7 +14,6 @@ main {
     justify-content: center;
     align-items: center;
 }
-
 p {
     font-family: "Roboto", sans-serif;
     font-size: 1.7rem;
@@ -30,12 +29,15 @@ p {
 }
 
 .text-area {
-    /* padding-left: 1rem;
-    padding-top: 1rem; */
     position: relative;
     width: 90%;
+    max-width: 290px;
+    height: 200px;
     resize: none;
+    padding: 1rem 0 0 1.2rem;
     margin-bottom: 2rem;
+    box-sizing: border-box !important;
+    font-size: 14px;
 }
 
 .btns {
@@ -57,8 +59,7 @@ p {
 }
 
 .section1,
-.section2,
-.molaa {
+.section2 {
     width: 90vw;
     display: flex;
     justify-content: center;
@@ -78,10 +79,4 @@ p {
     align-items: center;
     height: 10vh;
     min-width: 320px;
-}
-
-@media screen and (max-width: 480px) {
-    .group {
-        width: 90vw;
-    }
 }
