@@ -1,4 +1,4 @@
-// all textareas
+// All textareas
 const htmlTestArea = document.querySelector("#html-text");
 const cssTestArea = document.querySelector("#css-text");
 const jsTestArea = document.querySelector("#js-text");
@@ -13,14 +13,27 @@ const copyPurifiedCssBtn = document.querySelector(".copyPurifiedCss");
 const submitButton = document.querySelector(".submit-btn");
 const clearAllButton = document.querySelector(".clearAll-btn");
 
+// ALL FUNCTIONS
 // copy to clipboard function
 function copyToClipboard(value) {
     navigator.clipboard.writeText(value);
 }
 
-function isAllTextAreasFilled() {
+function isSomeTextAreasFilled() {
     if (htmlTestArea.value !== "" && cssTestArea.value !== "" && cssPurifiedTextArea.value !== "") return true;
     return false;
+}
+
+// sub working function extrect all css classes and ids
+function checkForSpecialCharacters(beforeBrace, specialCharacter) {
+    let ansArray = [];
+    let splitter = beforeBrace.split(specialCharacter);
+    splitter.forEach(item => {
+        if (item.includes(".") || item.includes("#")) {
+            ansArray.push(item.trim());
+        }
+    });
+    return ansArray;
 }
 
 copyPurifiedCssBtn.addEventListener("click", () => {
@@ -40,63 +53,44 @@ clearAllButton.addEventListener("click", () => {
     copyPurifiedCssBtn.classList.add("disableCopyButton");
 });
 
-let html;
-let css;
-let js;
-
-let allCssIds = [];
-let allCssClasses = [];
-
-let unUsedCssIds = [];
-let unUsedCssClasses = [];
-
-let allHtmlClasses = [];
-
-let cssLinesCount = 0;
-
-let collectedUnusedCss = [];
-let unusedPropertyLineNumbers = [];
-
-let cssPropertyByProperty = {};
-
 submitButton.addEventListener("click", () => {
+    // for activation of copy button
     if (htmlTestArea.value !== "" && cssTestArea.value !== "") {
         copyPurifiedCssBtn.textContent = "Copy";
         copyPurifiedCssBtn.classList.add("activeCopybtn");
         copyPurifiedCssBtn.classList.remove("disableCopyButton");
     }
 
-    if (isAllTextAreasFilled()) {
+    if (isSomeTextAreasFilled()) {
         cssPurifiedTextArea.value = "";
         cssUnusedTextArea.value = "";
         cssLinesRemoveTextArea.value = "";
     }
 
-    cssPropertyByProperty = {};
+    // all used variables
     let starting = 0;
     let previous = 0;
     let purifiedCss = "";
     let combinesUseless = [];
 
-    // initialize all variables to default or empty value to use it again and again
-    html = htmlTestArea.value;
-    css = cssTestArea.value;
-    js = jsTestArea.value;
+    let html = htmlTestArea.value;
+    let css = cssTestArea.value;
+    let js = jsTestArea.value;
 
-    allCssIds = [];
-    allCssClasses = [];
+    let allCssIds = [];
+    let allCssClasses = [];
 
-    unUsedCssIds = [];
-    unUsedCssClasses = [];
+    let unUsedCssIds = [];
+    let unUsedCssClasses = [];
 
-    allHtmlClasses = [];
+    let allHtmlClasses = [];
 
-    cssLinesCount = 0;
+    let cssLinesCount = 0;
 
-    collectedUnusedCss = [];
+    let collectedUnusedCss = [];
 
-    cssPropertyByProperty = {};
-    unusedPropertyLineNumbers = [];
+    let cssPropertyByProperty = {};
+    let unusedPropertyLineNumbers = [];
 
     // get all css property in "cssPropertyByProperty" variable
     for (let i = 0; i < css.length; i++) {
@@ -106,18 +100,6 @@ submitButton.addEventListener("click", () => {
             cssPropertyByProperty[starting] = forCorrectionMedia;
             previous = i + 1;
         }
-    }
-
-    // sub working function extrect all css classes and ids
-    function checkForSpecialCharacters(beforeBrace, specialCharacter) {
-        let ansArray = [];
-        let splitter = beforeBrace.split(specialCharacter);
-        splitter.forEach(item => {
-            if (item.includes(".") || item.includes("#")) {
-                ansArray.push(item.trim());
-            }
-        });
-        return ansArray;
     }
 
     // extrect all css classes and ids
@@ -310,7 +292,7 @@ submitButton.addEventListener("click", () => {
     for (let item of unusedPropertyLineNumbers) {
         cssLinesRemoveTextArea.value += item + " , ";
     }
-    cssLinesRemoveTextArea.value = cssLinesRemoveTextArea.value.slice(0, cssLinesRemoveTextArea.value.length - 2);
 
+    cssLinesRemoveTextArea.value = cssLinesRemoveTextArea.value.slice(0, cssLinesRemoveTextArea.value.length - 2);
     cssPurifiedTextArea.value = purifiedCss;
 });
