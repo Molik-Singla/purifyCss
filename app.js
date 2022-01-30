@@ -33,44 +33,16 @@ let cssLinesCount = 0;
 
 let collectedUnusedCss = [];
 let unusedPropertyLineNumbers = [];
-// let countForCollectedUnusedCss = 0;
 
 let cssPropertyByProperty = {};
 
-function getIds(characterIndex) {
-    let start = characterIndex;
-    let end;
-    for (end = characterIndex; css[end] != "\n"; ) {
-        end++;
-    }
-    let str = css.substring(start, end).trim();
-    str = str.split(",")[0].split(" ")[0];
-
-    if (!str.includes(";")) {
-        if (str[str.length - 1] === "{") str = str.substring(0, str.length - 1);
-        if (str.includes(":")) str = str.split(":")[0];
-        allCssIds.push(str);
-    }
-}
-
-// get all allCssClasses
-function getClasses(characterIndex) {
-    let start = characterIndex;
-    let end;
-    for (end = characterIndex; css[end] != "{"; ) {
-        end++;
-    }
-
-    let str = css.substring(start, end).trim();
-    if (!str.includes("\n")) {
-        str = str.split(" ")[0];
-        if (str.includes(":")) str = str.split(":")[0];
-        str = str.split(",");
-        allCssClasses.push(...str);
-    }
-}
-
 submitButton.addEventListener("click", () => {
+    cssPropertyByProperty = {};
+    let starting = 0;
+    let previous = 0;
+    let purifiedCss = "";
+    let combinesUseless = [];
+
     // initialize all variables to default or empty value to use it again and again
     html = htmlTestArea.value;
     css = cssTestArea.value;
@@ -91,26 +63,57 @@ submitButton.addEventListener("click", () => {
     cssPropertyByProperty = {};
     unusedPropertyLineNumbers = [];
 
-    // Calling getIds and getClasses function for extracting ids and classes from css
+    // get all css property in "cssPropertyByProperty" variable
     for (let i = 0; i < css.length; i++) {
-        if (css[i] === "#") {
-            if (css.indexOf("{", i + 1) === -1) {
-                continue;
-            } else if (css.indexOf("{", i + 1) > css.indexOf("}", i + 1)) {
-                continue;
-            }
-            getIds(i);
-        }
-        if (css[i] === ".") {
-            getClasses(i);
+        if (css[i] === "}") {
+            starting++;
+            let forCorrectionMedia = css.slice(previous, i + 1);
+            cssPropertyByProperty[starting] = forCorrectionMedia;
+            previous = i + 1;
         }
     }
 
-    // remove duplicate ids and classes
-    allCssIds = [...new Set(allCssIds)];
-    allCssClasses = [...new Set(allCssClasses)];
+    // sub working function extrect all css classes and ids
+    function checkForSpecialCharacters(beforeBrace, specialCharacter) {
+        let ansArray = [];
+        let splitter = beforeBrace.split(specialCharacter);
+        splitter.forEach(item => {
+            if (item.includes(".") || item.includes("#")) {
+                ansArray.push(item.trim());
+            }
+        });
+        return ansArray;
+    }
 
-    // getting unused ids from ccss ids array
+    // extrect all css classes and ids
+    let allCssClassesAndIds = [];
+    for (let i in cssPropertyByProperty) {
+        let beforeBrace = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("\n"), cssPropertyByProperty[i].indexOf("{"));
+        if (beforeBrace.includes(".") || beforeBrace.includes("#")) {
+            beforeBrace = beforeBrace.trim();
+            if (beforeBrace.includes(",")) {
+                allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, ","));
+            } else if (beforeBrace.includes(":")) {
+                allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, ":"));
+            } else if (beforeBrace.includes(" ")) {
+                allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, "\n"));
+            } else {
+                allCssClassesAndIds.push(beforeBrace.trim());
+            }
+        }
+    }
+
+    // remove duplicates in extracted classes and ids variable and save ids and classes in differ vars ( for check them in html )
+    allCssClassesAndIds = [...new Set(allCssClassesAndIds)];
+    for (let singleProperty of allCssClassesAndIds) {
+        if (singleProperty.includes(".")) {
+            allCssClasses.push(singleProperty);
+        } else if (singleProperty.includes("#")) {
+            allCssIds.push(singleProperty);
+        }
+    }
+
+    // getting unused ids from css ids array
     let allCssIdsCopy = [];
     allCssIds.forEach(singleId => {
         allCssIdsCopy.push(singleId.slice(1));
@@ -131,7 +134,7 @@ submitButton.addEventListener("click", () => {
         else unUsedCssIds.push(allCssIds[i]);
     }
 
-    // for all unused classes from css classes array
+    // for all unused classes from css classes array ( basically first extract all classes from html and then match them )
     const regex = /(?:class|className)=(?:["']\W+\s*(?:\w+)\()?["']([^'"]+)['"]/gim;
     let m;
 
@@ -165,13 +168,9 @@ submitButton.addEventListener("click", () => {
         }
     }
 
-    cssPropertyByProperty = {};
-    let starting = 0;
-    let previous = 0;
-    let purifiedCss = "";
-
     // basically combined unused ids and classes in one single variable ( usefull for iterating )
-    let combinesUseless = [...unUsedCssClasses, ...unUsedCssIds];
+    // combinesUseless = [...unUsedCssClasses, ...unUsedCssIds];
+    combinesUseless = [...unUsedCssClasses, ...unUsedCssIds];
 
     // after having unused properties from html we test them if they are in javascript ( else totally unused , delete them , if in js then delete it from unused array)
     for (let singleUnused of combinesUseless) {
@@ -189,18 +188,6 @@ submitButton.addEventListener("click", () => {
             if (index >= 0) combinesUseless.splice(index, 1);
         }
     }
-
-    // extract code by code or whole property by property of css in out object
-    for (let i = 0; i < css.length; i++) {
-        if (css[i] === "}") {
-            starting++;
-            let forCorrectionMedia = css.slice(previous, i + 1);
-            cssPropertyByProperty[starting] = forCorrectionMedia;
-            previous = i + 1;
-        }
-    }
-
-    purifiedCss = "";
 
     // Main Logic : extraction every unused property ,
     // collecting them in an array ,
@@ -228,6 +215,7 @@ submitButton.addEventListener("click", () => {
                                 else copy = copy.slice(1, copy.length);
                             }
                             cssPropertyByProperty[i] = cssPropertyByProperty[i].replace(beforeBraceInside, copy);
+
                             //  collect unused css
                             let codeBlockOfUnused = cssPropertyByProperty[i].slice(
                                 cssPropertyByProperty[i].indexOf("{"),
@@ -274,22 +262,20 @@ submitButton.addEventListener("click", () => {
         cssUnusedTextArea.value += item + "\n";
     }
 
-    let strt = 0;
-    for (let i = 0; i < css.length; i++) {
-        if (css[i] === "\n") {
-            ++cssLinesCount;
-            let answer = css.slice(strt, i);
-            strt = i;
-            for (let item of combinesUseless) {
-                if (answer.includes(item)) {
-                    unusedPropertyLineNumbers.push(cssLinesCount);
-                }
+    // count lines in css files so that it will used to tell line number of unused property
+    let cssSplitter = css.split("\n");
+    for (let line = 0; line < cssSplitter.length; line++) {
+        for (item of combinesUseless) {
+            if (cssSplitter[line].includes(item)) {
+                unusedPropertyLineNumbers.push(line + 1);
             }
         }
     }
-
+    unusedPropertyLineNumbers = new Set(unusedPropertyLineNumbers);
     for (let item of unusedPropertyLineNumbers) {
         cssLinesRemoveTextArea.value += item + " , ";
     }
+    cssLinesRemoveTextArea.value = cssLinesRemoveTextArea.value.slice(0, cssLinesRemoveTextArea.value.length - 2);
+
     cssPurifiedTextArea.value = purifiedCss;
 });
