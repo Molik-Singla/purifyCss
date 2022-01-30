@@ -1,3 +1,4 @@
+// all textareas
 const htmlTestArea = document.querySelector("#html-text");
 const cssTestArea = document.querySelector("#css-text");
 const jsTestArea = document.querySelector("#js-text");
@@ -5,9 +6,27 @@ const cssPurifiedTextArea = document.querySelector("#html-purifiedText");
 const cssUnusedTextArea = document.querySelector("#html-unusedText");
 const cssLinesRemoveTextArea = document.querySelector("#html-linesRemove");
 
+// copy buttons
+const copyPurifiedCssBtn = document.querySelector(".copyPurifiedCss");
+
+// submit and clear all button
 const submitButton = document.querySelector(".submit-btn");
 const clearAllButton = document.querySelector(".clearAll-btn");
 
+// copy to clipboard function
+function copyToClipboard(value) {
+    navigator.clipboard.writeText(value);
+}
+
+function isAllTextAreasFilled() {
+    if (htmlTestArea.value !== "" && cssTestArea.value !== "" && cssPurifiedTextArea.value !== "") return true;
+    return false;
+}
+
+copyPurifiedCssBtn.addEventListener("click", () => {
+    copyToClipboard(cssPurifiedTextArea.value);
+    copyPurifiedCssBtn.textContent = "Copied";
+});
 clearAllButton.addEventListener("click", () => {
     htmlTestArea.value = "";
     cssTestArea.value = "";
@@ -15,6 +34,10 @@ clearAllButton.addEventListener("click", () => {
     cssPurifiedTextArea.value = "";
     cssUnusedTextArea.value = "";
     cssLinesRemoveTextArea.value = "";
+
+    copyPurifiedCssBtn.textContent = "Copy";
+    copyPurifiedCssBtn.classList.remove("activeCopybtn");
+    copyPurifiedCssBtn.classList.add("disableCopyButton");
 });
 
 let html;
@@ -37,6 +60,18 @@ let unusedPropertyLineNumbers = [];
 let cssPropertyByProperty = {};
 
 submitButton.addEventListener("click", () => {
+    if (htmlTestArea.value !== "" && cssTestArea.value !== "") {
+        copyPurifiedCssBtn.textContent = "Copy";
+        copyPurifiedCssBtn.classList.add("activeCopybtn");
+        copyPurifiedCssBtn.classList.remove("disableCopyButton");
+    }
+
+    if (isAllTextAreasFilled()) {
+        cssPurifiedTextArea.value = "";
+        cssUnusedTextArea.value = "";
+        cssLinesRemoveTextArea.value = "";
+    }
+
     cssPropertyByProperty = {};
     let starting = 0;
     let previous = 0;
