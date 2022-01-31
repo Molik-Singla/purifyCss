@@ -6,12 +6,13 @@ const cssPurifiedTextArea = document.querySelector("#html-purifiedText");
 const cssUnusedTextArea = document.querySelector("#html-unusedText");
 const cssLinesRemoveTextArea = document.querySelector("#html-linesRemove");
 
-// copy buttons
+// buttons in HTML file
 const copyPurifiedCssBtn = document.querySelector(".copyPurifiedCss");
-
-// submit and clear all button
 const submitButton = document.querySelector(".submit-btn");
 const clearAllButton = document.querySelector(".clearAll-btn");
+const questionMarkBtn = document.querySelector(".questionMarkBtn");
+const aboutManualDiv = document.querySelector(".aboutUsingThisApp");
+const crossBtn = document.querySelector(".crossBtn");
 
 // ALL FUNCTIONS
 // copy to clipboard function
@@ -19,12 +20,13 @@ function copyToClipboard(value) {
     navigator.clipboard.writeText(value);
 }
 
+// check for some particular text areas is empty or filled
 function isSomeTextAreasFilled() {
     if (htmlTestArea.value !== "" && cssTestArea.value !== "" && cssPurifiedTextArea.value !== "") return true;
     return false;
 }
 
-// sub working function extrect all css classes and ids
+// function which is work as divider according to arguments and return array
 function checkForSpecialCharacters(beforeBrace, specialCharacter) {
     let ansArray = [];
     let splitter = beforeBrace.split(specialCharacter);
@@ -36,10 +38,31 @@ function checkForSpecialCharacters(beforeBrace, specialCharacter) {
     return ansArray;
 }
 
+// all button where event lostner is attached
+questionMarkBtn.addEventListener("click", () => {
+    aboutManualDiv.classList.remove("fade-out-bck");
+    aboutManualDiv.classList.remove("displaySwitchForUserManual");
+    aboutManualDiv.classList.add("enableSwitchForUserManual");
+});
+crossBtn.addEventListener("click", () => {
+    aboutManualDiv.classList.add("fade-out-bck");
+    setTimeout(() => {
+        aboutManualDiv.classList.remove("enableSwitchForUserManual");
+        aboutManualDiv.classList.add("displaySwitchForUserManual");
+    }, 700);
+});
+aboutManualDiv.addEventListener("mouseleave", () => {
+    aboutManualDiv.classList.add("fade-out-bck");
+    setTimeout(() => {
+        aboutManualDiv.classList.remove("enableSwitchForUserManual");
+        aboutManualDiv.classList.add("displaySwitchForUserManual");
+    }, 700);
+});
 copyPurifiedCssBtn.addEventListener("click", () => {
     copyToClipboard(cssPurifiedTextArea.value);
     copyPurifiedCssBtn.textContent = "Copied";
 });
+
 clearAllButton.addEventListener("click", () => {
     htmlTestArea.value = "";
     cssTestArea.value = "";
@@ -108,11 +131,17 @@ submitButton.addEventListener("click", () => {
         let beforeBrace = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("\n"), cssPropertyByProperty[i].indexOf("{"));
         if (beforeBrace.includes(".") || beforeBrace.includes("#")) {
             beforeBrace = beforeBrace.trim();
+            if (beforeBrace.includes(":") && beforeBrace.includes(",")) {
+                let stored = [...checkForSpecialCharacters(beforeBrace, ",")].join(" ");
+                beforeBrace = [...checkForSpecialCharacters(stored, ":")].join(" ");
+            }
             if (beforeBrace.includes(",")) {
                 allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, ","));
             } else if (beforeBrace.includes(":")) {
                 allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, ":"));
             } else if (beforeBrace.includes(" ")) {
+                allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, " "));
+            } else if (beforeBrace.includes("\n")) {
                 allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, "\n"));
             } else {
                 allCssClassesAndIds.push(beforeBrace.trim());
@@ -190,19 +219,20 @@ submitButton.addEventListener("click", () => {
     combinesUseless = [...unUsedCssClasses, ...unUsedCssIds];
 
     // after having unused properties from html we test them if they are in javascript ( else totally unused , delete them , if in js then delete it from unused array)
-    for (let singleUnused of combinesUseless) {
+    let solutionArray = [...combinesUseless];
+    for (let singleUnused of solutionArray) {
         if (js.includes(`"${singleUnused}"`)) {
             let index = combinesUseless.indexOf(`${singleUnused}`);
-            if (index >= 0) combinesUseless.splice(index, 1);
+            if (index !== -1) combinesUseless.splice(index, 1);
         } else if (js.includes(`"${singleUnused.substring(1)}"`)) {
             let index = combinesUseless.indexOf(`${singleUnused}`);
             if (index !== -1) combinesUseless.splice(index, 1);
         } else if (js.includes(`'${singleUnused}'`)) {
             let index = combinesUseless.indexOf(`${singleUnused}`);
-            if (index >= 0) combinesUseless.splice(index, 1);
+            if (index !== -1) combinesUseless.splice(index, 1);
         } else if (js.includes(`'${singleUnused.substring(1)}'`)) {
             let index = combinesUseless.indexOf(`${singleUnused}`);
-            if (index >= 0) combinesUseless.splice(index, 1);
+            if (index !== -1) combinesUseless.splice(index, 1);
         }
     }
 
@@ -279,6 +309,10 @@ submitButton.addEventListener("click", () => {
         cssUnusedTextArea.value += item + "\n";
     }
 
+    // if no unused value is found then generally show this message
+    if (!cssUnusedTextArea.value) {
+        cssUnusedTextArea.value = " ***  No Unused Properties in your Files  ***";
+    }
     // count lines in css files so that it will used to tell line number of unused property
     let cssSplitter = css.split("\n");
     for (let line = 0; line < cssSplitter.length; line++) {

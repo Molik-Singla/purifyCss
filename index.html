@@ -4,12 +4,14 @@
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Css Purifier</title>
+        <title>CSS Purifier</title>
         <link rel="stylesheet" href="stylesheet.css" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+        <script src="https://kit.fontawesome.com/280833cb08.js" crossorigin="anonymous"></script>
     </head>
     <body>
         <main>
@@ -45,6 +47,31 @@
             <div class="buttonSection">
                 <button class="submit-btn btns">Submit</button>
                 <button class="clearAll-btn btns">Clear All</button>
+            </div>
+            <button class="questionMarkBtn"><i class="fa fa-question-circle" aria-hidden="true"></i></button>
+            <div class="aboutUsingThisApp displaySwitchForUserManual fade-in-fwd">
+                <button class="crossBtn">
+                    <i class="fa fa-times" aria-hidden="true"></i>
+                </button>
+                <p>Conditions :</p>
+                <ul>
+                    <li>Pasting HTML and CSS is Required , JAVASCRIPT is Optional.</li>
+                    <li>Can only remove Property related to CSS Classes and Ids.</li>
+                    <li>Cannot remove HTML Tags ( like : p , div etc ... ).</li>
+                    <li>Couldn't remove Keyframes ( but remove class of unused Animations ).</li>
+                    <li>
+                        After Submit , You are provided Purified CSS , Ununsed CSS , and Line Numbers , from where you Can Remove Those Properties ( or Directly
+                        copy and paste purified CSS in your File ).
+                    </li>
+                </ul>
+
+                <p>Reasons in case of Wrong Purified CSS :</p>
+                <ul>
+                    <li>
+                        Your Code may contain , Code as Comments ( like comminting any class or id in HTML , CSS , or in JAVASCRIPT File ) may cause Unexpected
+                        Results.
+                    </li>
+                </ul>
             </div>
         </main>
 
