@@ -68,7 +68,6 @@ p {
     height: 10vh;
     min-width: 320px;
 }
-
 .copyPurifiedCss {
     position: absolute;
     right: 44px;
@@ -158,6 +157,11 @@ ul {
     -webkit-animation: fade-in-fwd 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) both;
     animation: fade-in-fwd 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) both;
 }
+@media screen and (max-width: 330px) {
+    .group {
+        height: 20px;
+    }
+}
 @keyframes fade-in-fwd {
     0% {
         -webkit-transform: translateZ(-80px);
@@ -170,12 +174,10 @@ ul {
         opacity: 1;
     }
 }
-
 .fade-out-bck {
     -webkit-animation: fade-out-bck 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     animation: fade-out-bck 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
-
 @keyframes fade-out-bck {
     0% {
         -webkit-transform: translateZ(0);

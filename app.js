@@ -38,7 +38,7 @@ function checkForSpecialCharacters(beforeBrace, specialCharacter) {
     return ansArray;
 }
 
-// all button where event lostner is attached
+// all button where event listner is attached
 questionMarkBtn.addEventListener("click", () => {
     aboutManualDiv.classList.remove("fade-out-bck");
     aboutManualDiv.classList.remove("displaySwitchForUserManual");
@@ -62,7 +62,6 @@ copyPurifiedCssBtn.addEventListener("click", () => {
     copyToClipboard(cssPurifiedTextArea.value);
     copyPurifiedCssBtn.textContent = "Copied";
 });
-
 clearAllButton.addEventListener("click", () => {
     htmlTestArea.value = "";
     cssTestArea.value = "";
@@ -108,44 +107,50 @@ submitButton.addEventListener("click", () => {
 
     let allHtmlClasses = [];
 
-    let cssLinesCount = 0;
-
     let collectedUnusedCss = [];
 
     let cssPropertyByProperty = {};
     let unusedPropertyLineNumbers = [];
 
-    // get all css property in "cssPropertyByProperty" variable
-    for (let i = 0; i < css.length; i++) {
-        if (css[i] === "}") {
-            starting++;
-            let forCorrectionMedia = css.slice(previous, i + 1);
-            cssPropertyByProperty[starting] = forCorrectionMedia;
-            previous = i + 1;
-        }
+    // count occurences of } for getting all css properties as property by property in cssPropertyByProperty variable
+    let count = (css.match(/}/g) || []).length;
+    starting = 0;
+    for (let i = 0; i < count; i++) {
+        let index = css.indexOf("}", starting + 1) + 1;
+        let current = css.slice(starting, index);
+        starting = index;
+        cssPropertyByProperty[i] = current;
     }
 
-    // extrect all css classes and ids
+    // extract classes and ids of CSS
     let allCssClassesAndIds = [];
     for (let i in cssPropertyByProperty) {
         let beforeBrace = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("\n"), cssPropertyByProperty[i].indexOf("{"));
+        if (beforeBrace.includes("*/")) {
+            beforeBrace = beforeBrace.slice(beforeBrace.indexOf("*/"));
+        }
+
         if (beforeBrace.includes(".") || beforeBrace.includes("#")) {
             beforeBrace = beforeBrace.trim();
+
             if (beforeBrace.includes(":") && beforeBrace.includes(",")) {
                 let stored = [...checkForSpecialCharacters(beforeBrace, ",")].join(" ");
                 beforeBrace = [...checkForSpecialCharacters(stored, ":")].join(" ");
             }
             if (beforeBrace.includes(",")) {
-                allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, ","));
-            } else if (beforeBrace.includes(":")) {
-                allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, ":"));
-            } else if (beforeBrace.includes(" ")) {
-                allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, " "));
-            } else if (beforeBrace.includes("\n")) {
-                allCssClassesAndIds.push(...checkForSpecialCharacters(beforeBrace, "\n"));
-            } else {
-                allCssClassesAndIds.push(beforeBrace.trim());
+                beforeBrace = [...checkForSpecialCharacters(beforeBrace, ",")].join(" ");
             }
+            if (beforeBrace.includes(":")) {
+                beforeBrace = [...checkForSpecialCharacters(beforeBrace, ":")].join(" ");
+            }
+            if (beforeBrace.includes(" ")) {
+                beforeBrace = [...checkForSpecialCharacters(beforeBrace, " ")].join(" ");
+            }
+            if (beforeBrace.includes("\n")) {
+                beforeBrace = [...checkForSpecialCharacters(beforeBrace, "\n")].join(" ");
+            }
+            beforeBrace = beforeBrace.split(" ");
+            allCssClassesAndIds.push(...beforeBrace);
         }
     }
 
