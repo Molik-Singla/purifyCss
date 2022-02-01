@@ -37,6 +37,22 @@ function checkForSpecialCharacters(beforeBrace, specialCharacter) {
     });
     return ansArray;
 }
+function isLetter(str) {
+    return str.length === 1 && str.match(/[a-z]/i);
+}
+// for check if class or id is correct means cls1 and cls1Used both are differ
+function checkForExactPropertyMatched(str, unused) {
+    str = str.toLocaleLowerCase();
+    if (str[unused.length]) {
+        if ((!isLetter(str[unused.length]) && str[unused.length] === " ") || str[unused.length] === ":") {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return true;
+    }
+}
 
 // all button where event listner is attached
 questionMarkBtn.addEventListener("click", () => {
@@ -91,7 +107,6 @@ submitButton.addEventListener("click", () => {
 
     // all used variables
     let starting = 0;
-    let previous = 0;
     let purifiedCss = "";
     let combinesUseless = [];
 
@@ -288,22 +303,22 @@ submitButton.addEventListener("click", () => {
                         }
                     }
                 } else {
-                    // else if only one class , ids was there then delete or remove it as it is unused
-                    // settings for if our code contains @ ( media or keyframes )
-                    if (cssPropertyByProperty[i].includes("@")) {
-                        let adding = cssPropertyByProperty[i].slice(0, cssPropertyByProperty[i].indexOf("{") + 1);
-                        cssPropertyByProperty[i] = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("{") + 1);
-                        collectedUnusedCss.push(cssPropertyByProperty[i].trim());
-                        cssPropertyByProperty[i] = adding;
-                    } else {
-                        collectedUnusedCss.push(cssPropertyByProperty[i].trim());
-                        cssPropertyByProperty[i] = "";
-                    }
+                    if (checkForExactPropertyMatched(cssPropertyByProperty[i].slice(0, cssPropertyByProperty[i].indexOf("{")), unusedStuff))
+                        if (cssPropertyByProperty[i].includes("@")) {
+                            // else if only one class , ids was there then delete or remove it as it is unused
+                            // settings for if our code contains @ ( media or keyframes )
+                            let adding = cssPropertyByProperty[i].slice(0, cssPropertyByProperty[i].indexOf("{") + 1);
+                            cssPropertyByProperty[i] = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("{") + 1);
+                            collectedUnusedCss.push(cssPropertyByProperty[i].trim());
+                            cssPropertyByProperty[i] = adding;
+                        } else {
+                            collectedUnusedCss.push(cssPropertyByProperty[i].trim());
+                            cssPropertyByProperty[i] = "";
+                        }
                 }
             }
         }
     }
-
     // purified css
     for (let i in cssPropertyByProperty) {
         purifiedCss += cssPropertyByProperty[i].trim() + "\n";
@@ -322,8 +337,19 @@ submitButton.addEventListener("click", () => {
     let cssSplitter = css.split("\n");
     for (let line = 0; line < cssSplitter.length; line++) {
         for (item of combinesUseless) {
-            if (cssSplitter[line].includes(item)) {
+            if (
+                cssSplitter[line].includes(item) &&
+                !cssSplitter[line].includes(",") &&
+                checkForExactPropertyMatched(cssSplitter[line].trimStart().slice(0, cssSplitter[line].indexOf("{")), item)
+            ) {
                 unusedPropertyLineNumbers.push(line + 1);
+            } else {
+                let splitter = cssSplitter[line].split(",");
+                for (let spl of splitter) {
+                    if (spl.includes(item) && !spl.includes(",") && checkForExactPropertyMatched(spl.trimStart().slice(0, spl.indexOf("{")), item)) {
+                        unusedPropertyLineNumbers.push(line + 1);
+                    }
+                }
             }
         }
     }
