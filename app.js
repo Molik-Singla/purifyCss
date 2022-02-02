@@ -13,6 +13,7 @@ const clearAllButton = document.querySelector(".clearAll-btn");
 const questionMarkBtn = document.querySelector(".questionMarkBtn");
 const aboutManualDiv = document.querySelector(".aboutUsingThisApp");
 const crossBtn = document.querySelector(".crossBtn");
+const demoBtn = document.querySelector(".demo");
 
 // ALL FUNCTIONS
 // copy to clipboard function
@@ -90,6 +91,78 @@ clearAllButton.addEventListener("click", () => {
     copyPurifiedCssBtn.classList.remove("activeCopybtn");
     copyPurifiedCssBtn.classList.add("disableCopyButton");
 });
+demoBtn.addEventListener("click", () => {
+    htmlTestArea.value = `<!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8" />
+            <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Demo</title>
+        </head>
+        <body>
+            <nav class="navClass-used flex-used">
+                <ul>
+                    <li>Home</li>
+                    <li>About</li>
+                </ul>
+            </nav>
+            <div class="outerDiv">
+                <button class="btn-used">Submit</button>
+                <button class="btn-used">Reset</button>
+            </div>
+        </body>
+    </html>
+    `;
+    cssTestArea.value = `* {
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        width: 100vw;
+        height: 100vh;
+    }
+    .navClass-used {
+        height: 8vh;
+        background-color: burlywood;
+        font-size: 18px;
+    }
+    #li-id-unused {
+        color: chartreuse;
+        text-align: end;
+    }
+    .outerDiv {
+        display: flex;
+        overflow: hidden;
+    }
+    .btn-used {
+        text-align: center;
+        background-color: coral;
+        color: cyan;
+    }
+    .btn-used:hover {
+        transform: scale(1.2);
+    }
+    .resetBtn-unused {
+        display: flex;
+    }
+    .resetBtn-unused:hover {
+        transform: scale(1.5);
+        font-size: 20px;
+    }
+    .flex-used {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .grid-unused {
+        display: grid;
+        justify-content: center;
+        align-content: center;
+    }
+    `;
+    submitButton.click();
+});
 
 submitButton.addEventListener("click", () => {
     // for activation of copy button
@@ -113,6 +186,11 @@ submitButton.addEventListener("click", () => {
     let html = htmlTestArea.value;
     let css = cssTestArea.value;
     let js = jsTestArea.value;
+
+    if (!html && !css) cssUnusedTextArea.value = "*** Please add some HTML and CSS ***";
+    else if (!html && css) cssUnusedTextArea.value = "*** Please add some HTML ***";
+    else if (html && !css) cssUnusedTextArea.value = "*** Please add some CSS ***";
+    else if (html && css) cssUnusedTextArea.value = "";
 
     let allCssIds = [];
     let allCssClasses = [];
@@ -141,13 +219,11 @@ submitButton.addEventListener("click", () => {
     let allCssClassesAndIds = [];
     for (let i in cssPropertyByProperty) {
         let beforeBrace = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("\n"), cssPropertyByProperty[i].indexOf("{"));
-        if (beforeBrace.includes("*/")) {
-            beforeBrace = beforeBrace.slice(beforeBrace.indexOf("*/"));
-        }
+        if (beforeBrace.includes("*/")) beforeBrace = beforeBrace.slice(beforeBrace.indexOf("*/"));
 
-        if (cssPropertyByProperty[i].includes("@media")) {
+        if (cssPropertyByProperty[i].includes("@media"))
             beforeBrace = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("{") + 1, cssPropertyByProperty[i].length);
-        }
+
         if (beforeBrace.includes(".") || beforeBrace.includes("#")) {
             beforeBrace = beforeBrace.trim();
 
@@ -155,18 +231,14 @@ submitButton.addEventListener("click", () => {
                 let stored = [...checkForSpecialCharacters(beforeBrace, ",")].join(" ");
                 beforeBrace = [...checkForSpecialCharacters(stored, ":")].join(" ");
             }
-            if (beforeBrace.includes(",")) {
-                beforeBrace = [...checkForSpecialCharacters(beforeBrace, ",")].join(" ");
-            }
-            if (beforeBrace.includes(":")) {
-                beforeBrace = [...checkForSpecialCharacters(beforeBrace, ":")].join(" ");
-            }
-            if (beforeBrace.includes(" ")) {
-                beforeBrace = [...checkForSpecialCharacters(beforeBrace, " ")].join(" ");
-            }
-            if (beforeBrace.includes("\n")) {
-                beforeBrace = [...checkForSpecialCharacters(beforeBrace, "\n")].join(" ");
-            }
+            if (beforeBrace.includes(",")) beforeBrace = [...checkForSpecialCharacters(beforeBrace, ",")].join(" ");
+
+            if (beforeBrace.includes(":")) beforeBrace = [...checkForSpecialCharacters(beforeBrace, ":")].join(" ");
+
+            if (beforeBrace.includes(" ")) beforeBrace = [...checkForSpecialCharacters(beforeBrace, " ")].join(" ");
+
+            if (beforeBrace.includes("\n")) beforeBrace = [...checkForSpecialCharacters(beforeBrace, "\n")].join(" ");
+
             beforeBrace = beforeBrace.split(" ");
             allCssClassesAndIds.push(...beforeBrace);
         }
@@ -175,11 +247,8 @@ submitButton.addEventListener("click", () => {
     // remove duplicates in extracted classes and ids variable and save ids and classes in differ vars ( for check them in html )
     allCssClassesAndIds = [...new Set(allCssClassesAndIds)];
     for (let singleProperty of allCssClassesAndIds) {
-        if (singleProperty.includes(".")) {
-            allCssClasses.push(singleProperty);
-        } else if (singleProperty.includes("#")) {
-            allCssIds.push(singleProperty);
-        }
+        if (singleProperty.includes(".")) allCssClasses.push(singleProperty);
+        else if (singleProperty.includes("#")) allCssIds.push(singleProperty);
     }
 
     // getting unused ids from css ids array
@@ -208,13 +277,10 @@ submitButton.addEventListener("click", () => {
     let m;
 
     while ((m = regex.exec(html)) !== null) {
-        if (m.index === regex.lastIndex) {
-            regex.lastIndex++;
-        }
+        if (m.index === regex.lastIndex) regex.lastIndex++;
+
         m.forEach(match => {
-            if (!match.includes("class=")) {
-                allHtmlClasses.push(match);
-            }
+            if (!match.includes("class=")) allHtmlClasses.push(match);
         });
     }
 
@@ -232,9 +298,7 @@ submitButton.addEventListener("click", () => {
                 break;
             }
         }
-        if (flag) {
-            unUsedCssClasses.push(allCssClasses[i]);
-        }
+        if (flag) unUsedCssClasses.push(allCssClasses[i]);
     }
 
     // basically combined unused ids and classes in one single variable ( usefull for iterating )
@@ -327,7 +391,7 @@ submitButton.addEventListener("click", () => {
     }
     // purified css
     for (let i in cssPropertyByProperty) {
-        purifiedCss += cssPropertyByProperty[i].trim() + "\n";
+        if (cssPropertyByProperty[i]) purifiedCss += cssPropertyByProperty[i].trim() + "\n";
     }
 
     // unused css
@@ -336,7 +400,7 @@ submitButton.addEventListener("click", () => {
     }
 
     // if no unused value is found then generally show this message
-    if (!cssUnusedTextArea.value) {
+    if (!cssUnusedTextArea.value && html && css) {
         cssUnusedTextArea.value = " ***  No Unused Properties in your Files  ***";
     }
     // count lines in css files so that it will used to tell line number of unused property
@@ -366,4 +430,5 @@ submitButton.addEventListener("click", () => {
 
     cssLinesRemoveTextArea.value = cssLinesRemoveTextArea.value.slice(0, cssLinesRemoveTextArea.value.length - 2);
     cssPurifiedTextArea.value = purifiedCss;
+    // cssPurifiedTextArea.value = purifiedCss.join("\n");
 });

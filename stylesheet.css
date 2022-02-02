@@ -145,22 +145,31 @@ ul {
     list-style-position: inside;
 }
 .aboutUsingThisApp p {
-    /* background-color: grey; */
     margin: 32px 0px 20px 0px;
     box-sizing: border-box;
     padding: 5px 0px;
-    /* border-radius: 10px; */
     font-size: 24px;
     border-bottom: 2px solid greenyellow;
+}
+.redRequired {
+    color: red;
+    font-weight: 500;
+}
+.demo {
+    top: 65px;
+    border: 2px solid black;
+    font-size: 13px;
+    height: 42px;
+    border-radius: 50px;
+    width: 42px;
+    background-color: black;
+    color: white;
+    font-weight: 700;
+    font-family: "Roboto", sans-serif;
 }
 .fade-in-fwd {
     -webkit-animation: fade-in-fwd 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) both;
     animation: fade-in-fwd 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) both;
-}
-@media screen and (max-width: 330px) {
-    .group {
-        height: 20px;
-    }
 }
 @keyframes fade-in-fwd {
     0% {
@@ -189,9 +198,4 @@ ul {
         transform: translateZ(-80px);
         opacity: 0;
     }
-}
-
-.redRequired {
-    color: red;
-    font-weight: 500;
 }
