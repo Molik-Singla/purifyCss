@@ -32,7 +32,7 @@ p {
     height: 200px;
     min-width: 320px;
     /* resize: none; */
-    padding: 1rem 0 0 1.2rem;
+    padding: 1rem 0.8rem 0 1.2rem;
     margin-bottom: 2rem;
     box-sizing: border-box !important;
     font-size: 14px;
@@ -189,4 +189,9 @@ ul {
         transform: translateZ(-80px);
         opacity: 0;
     }
+}
+
+.redRequired {
+    color: red;
+    font-weight: 500;
 }
