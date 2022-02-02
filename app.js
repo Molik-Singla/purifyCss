@@ -145,6 +145,9 @@ submitButton.addEventListener("click", () => {
             beforeBrace = beforeBrace.slice(beforeBrace.indexOf("*/"));
         }
 
+        if (cssPropertyByProperty[i].includes("@media")) {
+            beforeBrace = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("{") + 1, cssPropertyByProperty[i].length);
+        }
         if (beforeBrace.includes(".") || beforeBrace.includes("#")) {
             beforeBrace = beforeBrace.trim();
 
@@ -302,19 +305,22 @@ submitButton.addEventListener("click", () => {
                             }
                         }
                     }
+                    // else if only one class , ids was there then delete or remove it as it is unused
+                    // settings for if our code contains @ ( media or keyframes )
                 } else {
-                    if (checkForExactPropertyMatched(cssPropertyByProperty[i].slice(0, cssPropertyByProperty[i].indexOf("{")), unusedStuff))
-                        if (cssPropertyByProperty[i].includes("@")) {
-                            // else if only one class , ids was there then delete or remove it as it is unused
-                            // settings for if our code contains @ ( media or keyframes )
-                            let adding = cssPropertyByProperty[i].slice(0, cssPropertyByProperty[i].indexOf("{") + 1);
-                            cssPropertyByProperty[i] = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("{") + 1);
+                    if (cssPropertyByProperty[i].includes("@")) {
+                        let adding = cssPropertyByProperty[i].slice(0, cssPropertyByProperty[i].indexOf("{") + 1);
+                        cssPropertyByProperty[i] = cssPropertyByProperty[i].slice(cssPropertyByProperty[i].indexOf("{") + 1);
+                        if (checkForExactPropertyMatched(cssPropertyByProperty[i].trimStart().slice(0, cssPropertyByProperty[i].indexOf("{")), unusedStuff)) {
                             collectedUnusedCss.push(cssPropertyByProperty[i].trim());
                             cssPropertyByProperty[i] = adding;
-                        } else {
-                            collectedUnusedCss.push(cssPropertyByProperty[i].trim());
-                            cssPropertyByProperty[i] = "";
                         }
+                    } else if (
+                        checkForExactPropertyMatched(cssPropertyByProperty[i].trimStart().slice(0, cssPropertyByProperty[i].indexOf("{")), unusedStuff)
+                    ) {
+                        collectedUnusedCss.push(cssPropertyByProperty[i].trim());
+                        cssPropertyByProperty[i] = "";
+                    }
                 }
             }
         }
